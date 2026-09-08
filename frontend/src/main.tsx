@@ -3,8 +3,9 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 function App() {
-  const [screen, setScreen] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12>(1);
+  const [screen, setScreen] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13>(1);
   const [goal, setGoal] = useState("");
+  const [selectedFund, setSelectedFund] = useState("SIP Saathi Balanced Growth");
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -98,7 +99,19 @@ function App() {
   }
 
   if (screen === 12) {
-    return <ResearchShortlistScreen onBack={() => setScreen(10)} />;
+    return (
+      <ResearchShortlistScreen
+        onBack={() => setScreen(10)}
+        onViewDetails={(fundName) => {
+          setSelectedFund(fundName);
+          setScreen(13);
+        }}
+      />
+    );
+  }
+
+  if (screen === 13) {
+    return <FundDetailScreen fundName={selectedFund} onBack={() => setScreen(12)} />;
   }
 
   return (
@@ -1071,7 +1084,91 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
   );
 }
 
-function ResearchShortlistScreen({ onBack }: { onBack: () => void }) {
+function FundDetailScreen({
+  fundName,
+  onBack,
+}: {
+  fundName: string;
+  onBack: () => void;
+}) {
+  const metrics = [
+    ["3-year", "11.8%", "Annualised return"],
+    ["5-year", "13.2%", "Annualised return"],
+    ["10-year", "12.6%", "Annualised return"],
+    ["Volatility", "14.9%", "Annualised movement"],
+    ["Max drawdown", "−18.4%", "Largest observed fall"],
+    ["Expense ratio", "0.42%", "Illustrative cost"],
+  ];
+
+  return (
+    <main className="detail-screen">
+      <header className="topbar detail-screen__topbar">
+        <button className="back-button" type="button" onClick={onBack}>
+          Back
+        </button>
+        <span className="info-screen__progress">13 / 14</span>
+      </header>
+
+      <section className="detail-content" aria-labelledby="detail-title">
+        <div className="detail-heading">
+          <p className="eyebrow">Fund detail · Demo example</p>
+          <h1 id="detail-title" data-screen-title tabIndex={-1}>{fundName}</h1>
+          <p className="detail-category">Hybrid · Moderate allocation</p>
+          <p>
+            This view shows how evidence can be read together. The figures are
+            synthetic and are not a prediction or recommendation.
+          </p>
+        </div>
+
+        <div className="metric-grid" aria-label="Illustrative fund metrics">
+          {metrics.map(([label, value, note]) => (
+            <div className="metric" key={label}>
+              <small>{label}</small>
+              <strong>{value}</strong>
+              <span>{note}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="detail-lower">
+          <div>
+            <h2>What to notice</h2>
+            <p>
+              Longer periods can add context, but they do not remove loss or
+              change. Compare the full history, costs, category, and your own
+              time horizon together.
+            </p>
+          </div>
+          <div>
+            <h2>Source and method</h2>
+            <p>
+              Synthetic dataset · as of Jun 2025 · illustrative methodology
+              version 0.1
+            </p>
+          </div>
+        </div>
+
+        <div className="detail-actions">
+          <button className="primary-button" type="button" disabled>
+            Add to compare · Coming next
+          </button>
+          <p className="detail-disclaimer">
+            Research and education only. Review official scheme documents before
+            making any investment decision.
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function ResearchShortlistScreen({
+  onBack,
+  onViewDetails,
+}: {
+  onBack: () => void;
+  onViewDetails: (fundName: string) => void;
+}) {
   const funds = [
     {
       name: "SIP Saathi Balanced Growth",
@@ -1126,8 +1223,8 @@ function ResearchShortlistScreen({ onBack }: { onBack: () => void }) {
                 <span>{fund.evidence}</span>
                 <span>As of Jun 2025</span>
               </div>
-              <button className="text-button" type="button" disabled>
-                Details coming next
+              <button className="text-button" type="button" onClick={() => onViewDetails(fund.name)}>
+                View evidence details
               </button>
             </article>
           ))}
