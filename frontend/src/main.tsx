@@ -251,7 +251,7 @@ function App() {
   }
 
   if (screen === 10) {
-    return <ReviewScreen answers={answers} onBack={() => setScreen(9)} onNext={() => setScreen(11)} />;
+    return <ReviewScreen answers={answers} onBack={() => setScreen(9)} onNext={() => setScreen(11)} onEdit={(targetScreen) => setScreen(targetScreen)} />;
   }
 
   if (screen === 11) {
@@ -386,7 +386,7 @@ function HowItWorksScreen({
           <span aria-hidden="true">←</span>
           Back
         </button>
-        <span className="info-screen__progress">02 / 14</span>
+        <span className="info-screen__progress">02 / 11</span>
       </header>
 
       <section className="info-card" aria-labelledby="how-it-works-title">
@@ -479,7 +479,7 @@ function GoalScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">03 / 14</span>
+        <span className="info-screen__progress">03 / 11</span>
       </header>
 
       <section className="goal-content" aria-labelledby="goal-title">
@@ -556,7 +556,7 @@ function TargetAmountScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">04 / 14</span>
+        <span className="info-screen__progress">04 / 11</span>
       </header>
 
       <section className="target-content" aria-labelledby="target-title">
@@ -637,7 +637,7 @@ function DeadlineScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">05 / 14</span>
+        <span className="info-screen__progress">05 / 11</span>
       </header>
 
       <section className="deadline-content" aria-labelledby="deadline-title">
@@ -730,7 +730,7 @@ function MonthlyAmountScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">06 / 14</span>
+        <span className="info-screen__progress">06 / 11</span>
       </header>
 
       <section className="monthly-content" aria-labelledby="monthly-title">
@@ -839,7 +839,7 @@ function ExistingSavingsScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">07 / 14</span>
+        <span className="info-screen__progress">07 / 11</span>
       </header>
 
       <section className="savings-content" aria-labelledby="savings-title">
@@ -990,7 +990,7 @@ function LiquidityScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">08 / 14</span>
+        <span className="info-screen__progress">08 / 11</span>
       </header>
 
       <section className="liquidity-content" aria-labelledby="liquidity-title">
@@ -1106,7 +1106,7 @@ function RiskScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">09 / 14</span>
+        <span className="info-screen__progress">09 / 11</span>
       </header>
 
       <section className="risk-content" aria-labelledby="risk-title">
@@ -1177,10 +1177,12 @@ function ReviewScreen({
   answers: userAnswers,
   onBack,
   onNext,
+  onEdit,
 }: {
   answers: Answers;
   onBack: () => void;
   onNext: () => void;
+  onEdit: (screen: 3 | 4 | 5 | 6 | 7 | 8 | 9) => void;
 }) {
   const [notice, setNotice] = useState("");
   const goalLabel =
@@ -1193,23 +1195,42 @@ function ReviewScreen({
           : userAnswers.goal === "other"
             ? "Something else"
             : "Your selected goal";
-  const answers = [
-    ["Goal", goalLabel],
-    ["Target amount", "₹10,00,000"],
-    ["Target date", "June 2035"],
-    ["Monthly amount", "₹10,000"],
-    ["Existing savings", "₹1,50,000"],
-    ["Liquidity", "I can leave it invested"],
-    ["Loss capacity", "I could wait it out"],
+  const liquidityLabel =
+    userAnswers.liquidity === "soon"
+      ? "I may need it soon"
+      : userAnswers.liquidity === "some"
+        ? "I may need some of it"
+        : userAnswers.liquidity === "later"
+          ? "I can leave it invested"
+          : userAnswers.liquidity === "unsure"
+            ? "I am not sure yet"
+            : "Not set";
+  const riskLabel =
+    userAnswers.risk === "protect"
+      ? "I would want to protect it"
+      : userAnswers.risk === "pause"
+        ? "I could wait it out"
+        : userAnswers.risk === "long-term"
+          ? "I am focused on the long term"
+          : userAnswers.risk === "unsure"
+            ? "I am not sure yet"
+            : "Not set";
+  const liveAnswers: [string, string, 3 | 4 | 5 | 6 | 7 | 8 | 9][] = [
+    ["Goal", goalLabel, 3],
+    ["Target amount", userAnswers.targetAmount ? formatCurrency(Number(userAnswers.targetAmount)) : "Not set", 4],
+    ["Target date", userAnswers.deadline ? formatDeadline(userAnswers.deadline) : "Not set", 5],
+    ["Monthly amount", userAnswers.monthlyAmount ? formatCurrency(Number(userAnswers.monthlyAmount)) : "Not set", 6],
+    ["Existing savings", userAnswers.savings ? formatCurrency(Number(userAnswers.savings)) : "Not set", 7],
+    ["Liquidity", liquidityLabel, 8],
+    ["Loss capacity", riskLabel, 9],
   ];
-
   return (
     <main className="review-screen">
       <header className="topbar review-screen__topbar">
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">10 / 14</span>
+        <span className="info-screen__progress">10 / 11</span>
       </header>
 
       <section className="review-content" aria-labelledby="review-title">
@@ -1222,7 +1243,7 @@ function ReviewScreen({
           </p>
 
           <div className="review-list" aria-label="Your answers">
-            {answers.map(([label, value]) => (
+            {liveAnswers.map(([label, value, targetScreen]) => (
               <div className="review-row" key={label}>
                 <span>
                   <small>{label}</small>
@@ -1231,18 +1252,13 @@ function ReviewScreen({
                 <button
                   className="edit-button"
                   type="button"
-                  onClick={() => setNotice(`${label} can be edited from its question.`)}
+                  onClick={() => onEdit(targetScreen)}
                 >
                   Edit
                 </button>
               </div>
             ))}
           </div>
-
-          <p className="review-demo-note">
-            The values shown here are prototype examples until all answers are
-            connected to shared session state.
-          </p>
 
           <p className="review-disclaimer">
             Your answers are used for this session only. The next view is
@@ -1283,7 +1299,7 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
           </span>
           <span>SIP Saathi</span>
         </span>
-        <span className="info-screen__progress">11 / 14</span>
+        <span className="info-screen__progress">11 / 11</span>
       </header>
 
       <section className="screening-content" aria-labelledby="screening-title">
@@ -1680,7 +1696,7 @@ function FundDetailScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">14 / 14</span>
+        <span className="info-screen__progress">Fund evidence</span>
       </header>
 
       <section className="detail-content" aria-labelledby="detail-title">
@@ -1746,27 +1762,8 @@ function ResearchShortlistScreen({
   onCompare: (fundNames: string[]) => void;
   onViewDetails: (fundName: string) => void;
 }) {
-  const funds = [
-    {
-      name: "SIP Saathi Balanced Growth",
-      category: "Hybrid · Moderate allocation",
-      reason: "Included for its balanced exposure and longer evidence window.",
-      evidence: "3Y · 5Y · 10Y evidence",
-    },
-    {
-      name: "SIP Saathi Steady Index",
-      category: "Index · Broad market",
-      reason: "Included as a lower-cost reference for comparing broad-market exposure.",
-      evidence: "3Y · 5Y evidence",
-    },
-    {
-      name: "SIP Saathi Long View",
-      category: "Equity · Higher volatility",
-      reason: "Included to show the trade-off between longer horizons and larger swings.",
-      evidence: "5Y · 10Y evidence",
-    },
-  ];
-  const [compareSelection, setCompareSelection] = useState(demoPlans.slice(0, 2).map((fund) => fund.name));
+  const shortlistPlans = demoPlans.slice(0, 3);
+  const [compareSelection, setCompareSelection] = useState(shortlistPlans.slice(0, 2).map((fund) => fund.name));
 
   return (
     <main className="shortlist-screen">
@@ -1774,7 +1771,7 @@ function ResearchShortlistScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">13 / 14</span>
+        <span className="info-screen__progress">Research shortlist</span>
       </header>
 
       <section className="shortlist-content" aria-labelledby="shortlist-title">
@@ -1788,7 +1785,7 @@ function ResearchShortlistScreen({
         </div>
 
         <div className="shortlist-list">
-          {demoPlans.map((fund, index) => (
+          {shortlistPlans.map((fund, index) => (
             <article className="fund-card" key={fund.name}>
               <div className="fund-card__topline">
                 <span className="fund-card__number">0{index + 1}</span>
@@ -1990,7 +1987,7 @@ function ProjectionScreen({
         </div>
         <div className="projection-table-wrap">
           <div className="section-heading-row"><h2>Milestone view</h2><span className="section-count">Base calculation</span></div>
-          <table className="projection-table"><thead><tr><th>Point</th><th>SIP</th><th>Invested</th><th>Illustrative value</th></tr></thead><tbody>{points.filter((_, index) => index === 0 || index === points.length - 1 || index % 2 === 0).map((point, index) => <tr key={point.label}><th>{point.label}</th><td>{formatCurrency(contributionAtPoint(index))}</td><td>{formatCurrency(point.invested)}</td><td>{formatCurrency(point.value)}</td></tr>)}</tbody></table>
+          <table className="projection-table"><thead><tr><th>Point</th><th>SIP</th><th>Invested</th><th>Illustrative value</th></tr></thead><tbody>{points.filter((_, index) => index === 0 || index === points.length - 1 || index % 2 === 0).map((point) => <tr key={point.label}><th>{point.label}</th><td>{formatCurrency(contributionAtPoint(Number(point.label.slice(0, -1)) - 1))}</td><td>{formatCurrency(point.invested)}</td><td>{formatCurrency(point.value)}</td></tr>)}</tbody></table>
         </div>
         <div className="projection-actions"><button className="primary-button" type="button" onClick={onCompare}>Compare with another plan</button><p>Research and education only. These values are illustrative, not guaranteed.</p></div>
       </section>
