@@ -2,10 +2,49 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
+type Answers = {
+  goal: string;
+  targetAmount: string;
+  deadline: string;
+  monthlyAmount: string;
+  savings: string;
+  liquidity: string;
+  risk: string;
+};
+
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+function formatCurrency(value: number) {
+  return currencyFormatter.format(Math.max(0, Math.round(value)));
+}
+
+function formatDeadline(value: string) {
+  if (!value) return "June 2035";
+  return new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric" }).format(
+    new Date(`${value}T00:00:00`),
+  );
+}
+
 function App() {
-  const [screen, setScreen] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13>(1);
-  const [goal, setGoal] = useState("");
+  const [screen, setScreen] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14>(1);
+  const [answers, setAnswers] = useState<Answers>({
+    goal: "",
+    targetAmount: "",
+    deadline: "",
+    monthlyAmount: "",
+    savings: "",
+    liquidity: "",
+    risk: "",
+  });
   const [selectedFund, setSelectedFund] = useState("SIP Saathi Balanced Growth");
+
+  function updateAnswer(key: keyof Answers, value: string) {
+    setAnswers((current) => ({ ...current, [key]: value }));
+  }
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -28,8 +67,8 @@ function App() {
   if (screen === 3) {
     return (
       <GoalScreen
-        goal={goal}
-        onGoalChange={setGoal}
+        goal={answers.goal}
+        onGoalChange={(value) => updateAnswer("goal", value)}
         onBack={() => setScreen(2)}
         onNext={() => setScreen(4)}
       />
@@ -39,6 +78,8 @@ function App() {
   if (screen === 4) {
     return (
       <TargetAmountScreen
+        target={answers.targetAmount}
+        onTargetChange={(value) => updateAnswer("targetAmount", value)}
         onBack={() => setScreen(3)}
         onNext={() => setScreen(5)}
       />
@@ -48,6 +89,8 @@ function App() {
   if (screen === 5) {
     return (
       <DeadlineScreen
+        deadline={answers.deadline}
+        onDeadlineChange={(value) => updateAnswer("deadline", value)}
         onBack={() => setScreen(4)}
         onNext={() => setScreen(6)}
       />
@@ -57,6 +100,8 @@ function App() {
   if (screen === 6) {
     return (
       <MonthlyAmountScreen
+        monthlyAmount={answers.monthlyAmount}
+        onMonthlyAmountChange={(value) => updateAnswer("monthlyAmount", value)}
         onBack={() => setScreen(5)}
         onNext={() => setScreen(7)}
       />
@@ -66,6 +111,8 @@ function App() {
   if (screen === 7) {
     return (
       <ExistingSavingsScreen
+        savings={answers.savings}
+        onSavingsChange={(value) => updateAnswer("savings", value)}
         onBack={() => setScreen(6)}
         onNext={() => setScreen(8)}
       />
@@ -75,6 +122,8 @@ function App() {
   if (screen === 8) {
     return (
       <LiquidityScreen
+        liquidity={answers.liquidity}
+        onLiquidityChange={(value) => updateAnswer("liquidity", value)}
         onBack={() => setScreen(7)}
         onNext={() => setScreen(9)}
       />
@@ -84,6 +133,8 @@ function App() {
   if (screen === 9) {
     return (
       <RiskScreen
+        risk={answers.risk}
+        onRiskChange={(value) => updateAnswer("risk", value)}
         onBack={() => setScreen(8)}
         onNext={() => setScreen(10)}
       />
@@ -91,7 +142,7 @@ function App() {
   }
 
   if (screen === 10) {
-    return <ReviewScreen goal={goal} onBack={() => setScreen(9)} onNext={() => setScreen(11)} />;
+    return <ReviewScreen answers={answers} onBack={() => setScreen(9)} onNext={() => setScreen(11)} />;
   }
 
   if (screen === 11) {
@@ -100,18 +151,28 @@ function App() {
 
   if (screen === 12) {
     return (
-      <ResearchShortlistScreen
-        onBack={() => setScreen(10)}
-        onViewDetails={(fundName) => {
-          setSelectedFund(fundName);
-          setScreen(13);
-        }}
+      <DashboardScreen
+        answers={answers}
+        onOpenPlans={() => setScreen(13)}
+        onEditGoal={() => setScreen(3)}
       />
     );
   }
 
   if (screen === 13) {
-    return <FundDetailScreen fundName={selectedFund} onBack={() => setScreen(12)} />;
+    return (
+      <ResearchShortlistScreen
+        onBack={() => setScreen(12)}
+        onViewDetails={(fundName) => {
+          setSelectedFund(fundName);
+          setScreen(14);
+        }}
+      />
+    );
+  }
+
+  if (screen === 14) {
+    return <FundDetailScreen fundName={selectedFund} onBack={() => setScreen(13)} />;
   }
 
   return (
@@ -330,13 +391,16 @@ function GoalScreen({
 }
 
 function TargetAmountScreen({
+  target,
+  onTargetChange,
   onBack,
   onNext,
 }: {
+  target: string;
+  onTargetChange: (target: string) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [target, setTarget] = useState("");
   const [notice, setNotice] = useState("");
   const hasValidTarget = Number(target) > 0;
 
@@ -375,7 +439,7 @@ function TargetAmountScreen({
               placeholder="10,00,000"
               value={target}
               onChange={(event) => {
-                setTarget(event.target.value);
+                onTargetChange(event.target.value);
                 setNotice("");
               }}
               aria-describedby="target-help"
@@ -409,13 +473,16 @@ function TargetAmountScreen({
 }
 
 function DeadlineScreen({
+  deadline,
+  onDeadlineChange,
   onBack,
   onNext,
 }: {
+  deadline: string;
+  onDeadlineChange: (deadline: string) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [deadline, setDeadline] = useState("");
   const [notice, setNotice] = useState("");
 
   function continueFromDeadline() {
@@ -450,7 +517,7 @@ function DeadlineScreen({
               value={deadline}
               min={new Date().toISOString().slice(0, 10)}
               onChange={(event) => {
-                setDeadline(event.target.value);
+                onDeadlineChange(event.target.value);
                 setNotice("");
               }}
               aria-describedby="deadline-help"
@@ -498,13 +565,16 @@ function DeadlineScreen({
 }
 
 function MonthlyAmountScreen({
+  monthlyAmount,
+  onMonthlyAmountChange,
   onBack,
   onNext,
 }: {
+  monthlyAmount: string;
+  onMonthlyAmountChange: (monthlyAmount: string) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [monthlyAmount, setMonthlyAmount] = useState("");
   const [notice, setNotice] = useState("");
   const hasValidAmount = Number(monthlyAmount) > 0;
 
@@ -545,7 +615,7 @@ function MonthlyAmountScreen({
                 placeholder="10,000"
                 value={monthlyAmount}
                 onChange={(event) => {
-                  setMonthlyAmount(event.target.value);
+                  onMonthlyAmountChange(event.target.value);
                   setNotice("");
                 }}
                 aria-describedby="monthly-help"
@@ -599,13 +669,16 @@ function MonthlyAmountScreen({
 }
 
 function ExistingSavingsScreen({
+  savings,
+  onSavingsChange,
   onBack,
   onNext,
 }: {
+  savings: string;
+  onSavingsChange: (savings: string) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [savings, setSavings] = useState("");
   const [choice, setChoice] = useState<"zero" | "prefer-not-to-say" | "amount" | "">("");
   const [notice, setNotice] = useState("");
   const hasValidAmount = choice === "amount" && Number(savings) > 0;
@@ -652,7 +725,7 @@ function ExistingSavingsScreen({
                 value={savings}
                 onFocus={() => setChoice("amount")}
                 onChange={(event) => {
-                  setSavings(event.target.value);
+                  onSavingsChange(event.target.value);
                   setChoice("amount");
                   setNotice("");
                 }}
@@ -671,7 +744,7 @@ function ExistingSavingsScreen({
               aria-pressed={choice === "zero"}
               onClick={() => {
                 setChoice("zero");
-                setSavings("");
+                onSavingsChange("");
                 setNotice("");
               }}
             >
@@ -683,7 +756,7 @@ function ExistingSavingsScreen({
               aria-pressed={choice === "prefer-not-to-say"}
               onClick={() => {
                 setChoice("prefer-not-to-say");
-                setSavings("");
+                onSavingsChange("");
                 setNotice("");
               }}
             >
@@ -728,13 +801,16 @@ function ExistingSavingsScreen({
 }
 
 function LiquidityScreen({
+  liquidity,
+  onLiquidityChange,
   onBack,
   onNext,
 }: {
+  liquidity: string;
+  onLiquidityChange: (liquidity: string) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [liquidity, setLiquidity] = useState("");
   const [notice, setNotice] = useState("");
   const options = [
     {
@@ -793,7 +869,7 @@ function LiquidityScreen({
                 type="button"
                 aria-pressed={liquidity === item.value}
                 onClick={() => {
-                  setLiquidity(item.value);
+                  onLiquidityChange(item.value);
                   setNotice("");
                 }}
               >
@@ -841,13 +917,16 @@ function LiquidityScreen({
 }
 
 function RiskScreen({
+  risk,
+  onRiskChange,
   onBack,
   onNext,
 }: {
+  risk: string;
+  onRiskChange: (risk: string) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
-  const [risk, setRisk] = useState("");
   const [notice, setNotice] = useState("");
   const options = [
     {
@@ -906,7 +985,7 @@ function RiskScreen({
                 type="button"
                 aria-pressed={risk === item.value}
                 onClick={() => {
-                  setRisk(item.value);
+                  onRiskChange(item.value);
                   setNotice("");
                 }}
               >
@@ -954,23 +1033,23 @@ function RiskScreen({
 }
 
 function ReviewScreen({
-  goal,
+  answers: userAnswers,
   onBack,
   onNext,
 }: {
-  goal: string;
+  answers: Answers;
   onBack: () => void;
   onNext: () => void;
 }) {
   const [notice, setNotice] = useState("");
   const goalLabel =
-    goal === "home"
+    userAnswers.goal === "home"
       ? "Buy a home"
-      : goal === "education"
+      : userAnswers.goal === "education"
         ? "Education"
-        : goal === "retirement"
+        : userAnswers.goal === "retirement"
           ? "Retirement"
-          : goal === "other"
+          : userAnswers.goal === "other"
             ? "Something else"
             : "Your selected goal";
   const answers = [
@@ -1084,6 +1163,183 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
   );
 }
 
+function DashboardScreen({
+  answers,
+  onOpenPlans,
+  onEditGoal,
+}: {
+  answers: Answers;
+  onOpenPlans: () => void;
+  onEditGoal: () => void;
+}) {
+  const goalLabel =
+    answers.goal === "home"
+      ? "Buy a home"
+      : answers.goal === "education"
+        ? "Education"
+        : answers.goal === "retirement"
+          ? "Retirement"
+          : answers.goal === "other"
+            ? "Something else"
+            : "Your goal";
+  const target = Number(answers.targetAmount) || 1000000;
+  const savings = Number(answers.savings) || 0;
+  const monthly = Number(answers.monthlyAmount) || 4000;
+  const remaining = Math.max(target - savings, 0);
+  const progress = Math.min((savings / target) * 100, 100);
+  const liquidityLabel =
+    answers.liquidity === "soon"
+      ? "Near-term access"
+      : answers.liquidity === "some"
+        ? "Some access"
+        : answers.liquidity === "later"
+          ? "Long-term"
+          : "Still exploring";
+  const riskLabel =
+    answers.risk === "protect"
+      ? "Protect first"
+      : answers.risk === "wait"
+        ? "Could wait out swings"
+        : answers.risk === "long-term"
+          ? "Long-term focus"
+          : "Still exploring";
+  const plans = [
+    ["Balanced Advantage", "Flexi-Cap & Hybrid Balance", "Moderate", "7–10 Yrs"],
+    ["Equity Diversified", "Large & Mid-Cap Disciplined Growth", "Mod-High", "10+ Yrs"],
+    ["Passive Index Combo", "Index Nifty 50 + Target Debt SIP", "Low-Mod", "8–12 Yrs"],
+    ["Multi-Asset Allocation", "Conservative Capital Accumulator", "Conservative", "5–10 Yrs"],
+  ];
+
+  return (
+    <main className="dashboard-screen">
+      <header className="app-header">
+        <a className="wordmark app-header__wordmark" href="/" aria-label="SIP Saathi home">
+          <span className="wordmark__mark" aria-hidden="true">
+            <span />
+            <span />
+          </span>
+          <span>SIP Saathi</span>
+        </a>
+        <div className="app-header__controls">
+          <button className="goal-chip" type="button" onClick={onEditGoal}>
+            <span aria-hidden="true">◎</span>
+            {goalLabel} · {formatDeadline(answers.deadline).split(" ").at(-1)}
+          </button>
+          <button className="profile-button" type="button" aria-label="Open profile">
+            <span aria-hidden="true">•</span>
+          </button>
+        </div>
+      </header>
+
+      <section className="dashboard-content" aria-labelledby="dashboard-title">
+        <div className="dashboard-heading">
+          <p className="dashboard-kicker">Primary goal path</p>
+          <h1 id="dashboard-title" data-screen-title tabIndex={-1}>Your {goalLabel.toLowerCase()}.</h1>
+          <p>One calm place to understand the goal, the SIP plan, and the trade-offs.</p>
+        </div>
+
+        <section className="goal-summary-card" aria-label="Goal summary">
+          <div className="goal-summary-card__topline">
+            <span>Target corpus</span>
+            <span className="funded-badge">{Math.round(progress)}% funded</span>
+          </div>
+          <strong>{formatCurrency(target)}</strong>
+          <p>Target: {formatDeadline(answers.deadline)} · Long-term planning horizon</p>
+          <div className="goal-progress" aria-label={`${Math.round(progress)} percent funded`}>
+            <span style={{ width: `${progress}%` }} />
+          </div>
+          <div className="goal-summary-card__stats">
+            <span>Current savings<strong>{formatCurrency(savings)}</strong></span>
+            <span>Still needed<strong>{formatCurrency(remaining)}</strong></span>
+          </div>
+          <div className="capacity-note">
+            <span aria-hidden="true">↗</span>
+            <span>Capacity: {formatCurrency(monthly)} / month · 5% quarterly step-up</span>
+          </div>
+        </section>
+
+        <div className="dashboard-actions">
+          <button className="secondary-action" type="button" onClick={onEditGoal}>Edit goal</button>
+          <button className="secondary-action" type="button" onClick={onOpenPlans}>Goal health check</button>
+          <button className="secondary-action" type="button" onClick={onOpenPlans}>Methodology</button>
+        </div>
+
+        <section className="sip-overview" aria-labelledby="sip-overview-title">
+          <div className="section-heading-row">
+            <div>
+              <p className="dashboard-kicker">Your current plan</p>
+              <h2 id="sip-overview-title">Planned SIP contribution</h2>
+            </div>
+            <button className="text-button" type="button" onClick={onOpenPlans}>Edit</button>
+          </div>
+          <div className="sip-overview__body">
+            <div>
+              <span>Monthly amount</span>
+              <strong>{formatCurrency(monthly)}</strong>
+            </div>
+            <div>
+              <span>Step-up rule</span>
+              <strong>5% quarterly</strong>
+            </div>
+          </div>
+          <p className="sip-overview__note">This is a planning amount, not an investment or payment instruction.</p>
+        </section>
+
+        <section className="research-section" aria-labelledby="research-title">
+          <div className="section-heading-row">
+            <div>
+              <p className="dashboard-kicker">Research-based plans</p>
+              <h2 id="research-title">Explore your options</h2>
+            </div>
+            <span className="section-count">4 options</span>
+          </div>
+          <p className="section-intro">Grouped around your {formatDeadline(answers.deadline).split(" ").at(-1)} goal timeline and your comfort with loss.</p>
+          <div className="plan-preview-list">
+            {plans.map(([type, name, risk, horizon]) => (
+              <article className="plan-preview" key={name}>
+                <div className="plan-preview__topline">
+                  <span className="plan-type">{type}</span>
+                  <span className="plan-icon" aria-hidden="true">↗</span>
+                </div>
+                <h3>{name}</h3>
+                <div className="plan-preview__meta">
+                  <span>Risk<strong>{risk}</strong></span>
+                  <span>Horizon<strong>{horizon}</strong></span>
+                  <span>Initial SIP<strong>{formatCurrency(monthly)}</strong></span>
+                </div>
+                <p>Compare evidence, cost, volatility, and liquidity before making a decision.</p>
+                <button className="primary-button plan-preview__button" type="button" onClick={onOpenPlans}>
+                  View projection <span aria-hidden="true">→</span>
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="education-note">
+          <strong>Educational research tool</strong>
+          <span>Projections are illustrative. Mutual fund values can fall, and no return is guaranteed.</span>
+        </aside>
+      </section>
+
+      <nav className="app-navigation" aria-label="App navigation">
+        <button className="app-navigation__item app-navigation__item--active" type="button">
+          <span aria-hidden="true">⌂</span>Dashboard
+        </button>
+        <button className="app-navigation__item" type="button" onClick={onOpenPlans}>
+          <span aria-hidden="true">◇</span>Plans
+        </button>
+        <button className="app-navigation__item" type="button" disabled>
+          <span aria-hidden="true">◈</span>Compare
+        </button>
+        <button className="app-navigation__item" type="button" disabled>
+          <span aria-hidden="true">▤</span>Learn
+        </button>
+      </nav>
+    </main>
+  );
+}
+
 function FundDetailScreen({
   fundName,
   onBack,
@@ -1106,7 +1362,7 @@ function FundDetailScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">13 / 14</span>
+        <span className="info-screen__progress">14 / 14</span>
       </header>
 
       <section className="detail-content" aria-labelledby="detail-title">
@@ -1196,7 +1452,7 @@ function ResearchShortlistScreen({
         <button className="back-button" type="button" onClick={onBack}>
           Back
         </button>
-        <span className="info-screen__progress">12 / 14</span>
+        <span className="info-screen__progress">13 / 14</span>
       </header>
 
       <section className="shortlist-content" aria-labelledby="shortlist-title">
