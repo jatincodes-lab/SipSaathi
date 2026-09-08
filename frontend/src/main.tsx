@@ -260,7 +260,7 @@ function App() {
 
   if (screen === 12) {
     return (
-      <DashboardScreen
+      <DashboardScreenV2
         answers={answers}
         onOpenPlans={() => setScreen(13)}
         onEditGoal={() => setScreen(3)}
@@ -1476,6 +1476,179 @@ function DashboardScreen({
         <button className="app-navigation__item" type="button" disabled>
           <span aria-hidden="true">▤</span>Learn
         </button>
+      </nav>
+    </main>
+  );
+}
+
+function DashboardScreenV2({
+  answers,
+  onOpenPlans,
+  onEditGoal,
+}: {
+  answers: Answers;
+  onOpenPlans: () => void;
+  onEditGoal: () => void;
+}) {
+  const goalLabel =
+    answers.goal === "home"
+      ? "Buy a home"
+      : answers.goal === "education"
+        ? "Education"
+        : answers.goal === "retirement"
+          ? "Retirement"
+          : answers.goal === "other"
+            ? "Something else"
+            : "Your goal";
+  const target = Number(answers.targetAmount) || 1000000;
+  const savings = Number(answers.savings) || 0;
+  const monthly = Number(answers.monthlyAmount) || 4000;
+  const remaining = Math.max(target - savings, 0);
+  const progress = Math.min((savings / target) * 100, 100);
+  const liquidityLabel =
+    answers.liquidity === "soon"
+      ? "Near-term access"
+      : answers.liquidity === "some"
+        ? "Some access"
+        : answers.liquidity === "later"
+          ? "Long-term"
+          : "Still exploring";
+  const riskLabel =
+    answers.risk === "protect"
+      ? "Protect first"
+      : answers.risk === "wait"
+        ? "Could wait out swings"
+        : answers.risk === "long-term"
+          ? "Long-term focus"
+          : "Still exploring";
+  const plans = [
+    ["Balanced Advantage", "Flexi-Cap & Hybrid Balance", "Moderate", "7–10 yrs"],
+    ["Equity Diversified", "Large & Mid-Cap Disciplined Growth", "Mod-high", "10+ yrs"],
+    ["Passive Index Combo", "Index Nifty 50 + Target Debt SIP", "Low-mod", "8–12 yrs"],
+    ["Multi-Asset Allocation", "Conservative Capital Accumulator", "Conservative", "5–10 yrs"],
+  ];
+
+  return (
+    <main className="dashboard-screen dashboard-screen--new">
+      <header className="app-header">
+        <a className="wordmark app-header__wordmark" href="/" aria-label="SIP Saathi home">
+          <span className="wordmark__mark" aria-hidden="true"><span /><span /></span>
+          <span>SIP Saathi</span>
+        </a>
+        <div className="app-header__controls">
+          <button className="goal-chip" type="button" onClick={onEditGoal}>
+            <span className="goal-chip__dot" aria-hidden="true" />
+            {goalLabel} · {formatDeadline(answers.deadline).split(" ").at(-1)}
+          </button>
+          <button className="profile-button" type="button" aria-label="Open profile">RS</button>
+        </div>
+      </header>
+
+      <section className="dashboard-content" aria-labelledby="dashboard-title">
+        <div className="dashboard-heading">
+          <div>
+            <p className="dashboard-kicker">Monday, 08 September 2026</p>
+            <h1 id="dashboard-title" data-screen-title tabIndex={-1}>Keep the goal<br />in sight.</h1>
+            <p>Your {goalLabel.toLowerCase()} plan, with the important numbers close at hand.</p>
+          </div>
+          <div className="dashboard-heading__aside">
+            <span className="dashboard-heading__aside-label">Plan status</span>
+            <strong>On track to review</strong>
+            <span>Last updated just now · demo workspace</span>
+          </div>
+        </div>
+
+        <div className="dashboard-overview">
+          <section className="goal-summary-card" aria-label="Goal summary">
+            <div className="goal-summary-card__copy">
+              <div className="goal-summary-card__topline">
+                <span>Primary goal · {formatDeadline(answers.deadline)}</span>
+                <span className="funded-badge">{Math.round(progress)}% funded</span>
+              </div>
+              <strong>{formatCurrency(target)}</strong>
+              <p>Target corpus for {goalLabel.toLowerCase()}.</p>
+              <div className="goal-progress" aria-label={`${Math.round(progress)} percent funded`}>
+                <span style={{ width: `${Math.max(progress, 3)}%` }} />
+              </div>
+              <div className="goal-summary-card__stats">
+                <span>Current savings<strong>{formatCurrency(savings)}</strong></span>
+                <span>Still needed<strong>{formatCurrency(remaining)}</strong></span>
+              </div>
+            </div>
+            <div className="goal-summary-card__visual" aria-hidden="true">
+              <svg viewBox="0 0 240 190" role="presentation">
+                <path className="goal-chart-grid" d="M16 158H224M16 122H224M16 86H224M16 50H224" />
+                <path className="goal-chart-line" d="M16 151C42 146 48 130 72 133S100 113 119 116s23-35 48-34 29-32 57-48" />
+                <circle className="goal-chart-point" cx="119" cy="116" r="5" />
+                <text x="16" y="178">today</text><text x="188" y="178">goal date</text>
+              </svg>
+              <span>Funding path</span>
+            </div>
+          </section>
+
+          <aside className="goal-context" aria-label="Plan context">
+            <div className="goal-context__heading">
+              <span className="dashboard-kicker">Your context</span>
+              <span className="goal-context__mark" aria-hidden="true">01</span>
+            </div>
+            <dl>
+              <div><dt>Monthly SIP</dt><dd>{formatCurrency(monthly)}</dd></div>
+              <div><dt>Liquidity</dt><dd>{liquidityLabel}</dd></div>
+              <div><dt>Loss capacity</dt><dd>{riskLabel}</dd></div>
+            </dl>
+            <button className="inline-action" type="button" onClick={onEditGoal}>Review answers <span aria-hidden="true">→</span></button>
+          </aside>
+        </div>
+
+        <div className="dashboard-actions">
+          <button className="primary-button" type="button" onClick={onOpenPlans}>Open research plans <span aria-hidden="true">→</span></button>
+          <button className="secondary-action" type="button" onClick={onEditGoal}>Edit goal</button>
+          <button className="secondary-action" type="button" onClick={onOpenPlans}>Methodology</button>
+        </div>
+
+        <section className="sip-overview" aria-labelledby="sip-overview-title">
+          <div className="section-heading-row">
+            <div><p className="dashboard-kicker">The recurring part</p><h2 id="sip-overview-title">Planned SIP contribution</h2></div>
+            <button className="text-button" type="button" onClick={onOpenPlans}>Edit plan <span aria-hidden="true">↗</span></button>
+          </div>
+          <div className="sip-overview__body">
+            <div><span>Monthly amount</span><strong>{formatCurrency(monthly)}</strong><small>starting contribution</small></div>
+            <div><span>Step-up rule</span><strong>5% quarterly</strong><small>review when income changes</small></div>
+            <div><span>Time horizon</span><strong>{formatDeadline(answers.deadline).split(" ").at(-1)}</strong><small>planning date, not a promise</small></div>
+          </div>
+          <p className="sip-overview__note">This is a planning amount, not an investment or payment instruction.</p>
+        </section>
+
+        <section className="research-section" aria-labelledby="research-title">
+          <div className="section-heading-row">
+            <div><p className="dashboard-kicker">Research-based plans</p><h2 id="research-title">Explore your options</h2></div>
+            <span className="section-count">04 options</span>
+          </div>
+          <p className="section-intro">Grouped around your {formatDeadline(answers.deadline).split(" ").at(-1)} goal timeline and your comfort with loss.</p>
+          <div className="plan-preview-list">
+            {plans.map(([type, name, risk, horizon], index) => (
+              <article className="plan-preview" key={name}>
+                <div className="plan-preview__index" aria-hidden="true">0{index + 1}</div>
+                <div className="plan-preview__content">
+                  <div className="plan-preview__topline"><span className="plan-type">{type}</span><span className="plan-icon" aria-hidden="true">↗</span></div>
+                  <h3>{name}</h3>
+                  <p>Compare evidence, cost, volatility, and liquidity before making a decision.</p>
+                </div>
+                <div className="plan-preview__meta"><span>Risk<strong>{risk}</strong></span><span>Horizon<strong>{horizon}</strong></span><span>Initial SIP<strong>{formatCurrency(monthly)}</strong></span></div>
+                <button className="text-button plan-preview__button" type="button" onClick={onOpenPlans}>View projection <span aria-hidden="true">→</span></button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="education-note"><strong>Educational research tool</strong><span>Projections are illustrative. Mutual fund values can fall, and no return is guaranteed.</span></aside>
+      </section>
+
+      <nav className="app-navigation" aria-label="App navigation">
+        <button className="app-navigation__item app-navigation__item--active" type="button"><span aria-hidden="true">01</span>Dashboard</button>
+        <button className="app-navigation__item" type="button" onClick={onOpenPlans}><span aria-hidden="true">02</span>Plans</button>
+        <button className="app-navigation__item" type="button" disabled><span aria-hidden="true">03</span>Compare</button>
+        <button className="app-navigation__item" type="button" disabled><span aria-hidden="true">04</span>Learn</button>
       </nav>
     </main>
   );
