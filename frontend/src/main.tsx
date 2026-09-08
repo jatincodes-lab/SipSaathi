@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 function App() {
-  const [screen, setScreen] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10>(1);
+  const [screen, setScreen] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12>(1);
   const [goal, setGoal] = useState("");
 
   useEffect(() => {
@@ -90,7 +90,15 @@ function App() {
   }
 
   if (screen === 10) {
-    return <ReviewScreen goal={goal} onBack={() => setScreen(9)} />;
+    return <ReviewScreen goal={goal} onBack={() => setScreen(9)} onNext={() => setScreen(11)} />;
+  }
+
+  if (screen === 11) {
+    return <ScreeningScreen onNext={() => setScreen(12)} />;
+  }
+
+  if (screen === 12) {
+    return <ResearchShortlistScreen onBack={() => setScreen(10)} />;
   }
 
   return (
@@ -935,9 +943,11 @@ function RiskScreen({
 function ReviewScreen({
   goal,
   onBack,
+  onNext,
 }: {
   goal: string;
   onBack: () => void;
+  onNext: () => void;
 }) {
   const [notice, setNotice] = useState("");
   const goalLabel =
@@ -1007,7 +1017,7 @@ function ReviewScreen({
           </p>
 
           <div className="review-actions">
-            <button className="primary-button" type="button">
+            <button className="primary-button" type="button" onClick={onNext}>
               Show my research options
             </button>
             <p className="action-note" role="status" aria-live="polite">
@@ -1019,6 +1029,114 @@ function ReviewScreen({
         <div className="review-visual" aria-hidden="true">
           <img src="/assets/review-answers.png" alt="" width="716" height="716" />
         </div>
+      </section>
+    </main>
+  );
+}
+
+function ScreeningScreen({ onNext }: { onNext: () => void }) {
+  useEffect(() => {
+    const timer = window.setTimeout(onNext, 900);
+    return () => window.clearTimeout(timer);
+  }, [onNext]);
+
+  return (
+    <main className="screening-screen" aria-busy="true">
+      <header className="topbar screening-screen__topbar">
+        <span className="wordmark">
+          <span className="wordmark__mark" aria-hidden="true">
+            <span />
+            <span />
+          </span>
+          <span>SIP Saathi</span>
+        </span>
+        <span className="info-screen__progress">11 / 14</span>
+      </header>
+
+      <section className="screening-content" aria-labelledby="screening-title">
+        <p className="eyebrow">A clear path to the shortlist</p>
+        <h1 id="screening-title" data-screen-title tabIndex={-1}>Preparing your research.</h1>
+        <p className="screening-intro">
+          We are organising the results around your goal, time horizon, and
+          comfort with risk.
+        </p>
+        <ul className="screening-checks" aria-label="Research checks">
+          <li><span aria-hidden="true">01</span>Matching the goal and time horizon</li>
+          <li><span aria-hidden="true">02</span>Checking long-term evidence and consistency</li>
+          <li><span aria-hidden="true">03</span>Showing costs, risks, and source dates</li>
+        </ul>
+        <p className="screening-status" role="status">Using synthetic demo data for this prototype.</p>
+      </section>
+    </main>
+  );
+}
+
+function ResearchShortlistScreen({ onBack }: { onBack: () => void }) {
+  const funds = [
+    {
+      name: "SIP Saathi Balanced Growth",
+      category: "Hybrid · Moderate allocation",
+      reason: "Included for its balanced exposure and longer evidence window.",
+      evidence: "3Y · 5Y · 10Y evidence",
+    },
+    {
+      name: "SIP Saathi Steady Index",
+      category: "Index · Broad market",
+      reason: "Included as a lower-cost reference for comparing broad-market exposure.",
+      evidence: "3Y · 5Y evidence",
+    },
+    {
+      name: "SIP Saathi Long View",
+      category: "Equity · Higher volatility",
+      reason: "Included to show the trade-off between longer horizons and larger swings.",
+      evidence: "5Y · 10Y evidence",
+    },
+  ];
+
+  return (
+    <main className="shortlist-screen">
+      <header className="topbar shortlist-screen__topbar">
+        <button className="back-button" type="button" onClick={onBack}>
+          Back
+        </button>
+        <span className="info-screen__progress">12 / 14</span>
+      </header>
+
+      <section className="shortlist-content" aria-labelledby="shortlist-title">
+        <div className="shortlist-heading">
+          <p className="eyebrow">Your research shortlist</p>
+          <h1 id="shortlist-title" data-screen-title tabIndex={-1}>Three ways to explore the trade-off.</h1>
+          <p>
+            These synthetic examples are grouped around your answers. They are
+            here to help you compare evidence, not to tell you what to buy.
+          </p>
+        </div>
+
+        <div className="shortlist-list">
+          {funds.map((fund, index) => (
+            <article className="fund-card" key={fund.name}>
+              <div className="fund-card__topline">
+                <span className="fund-card__number">0{index + 1}</span>
+                <span className="demo-badge">Demo example</span>
+              </div>
+              <h2>{fund.name}</h2>
+              <p className="fund-card__category">{fund.category}</p>
+              <p>{fund.reason}</p>
+              <div className="fund-card__meta">
+                <span>{fund.evidence}</span>
+                <span>As of Jun 2025</span>
+              </div>
+              <button className="text-button" type="button" disabled>
+                Details coming next
+              </button>
+            </article>
+          ))}
+        </div>
+
+        <p className="shortlist-disclaimer">
+          Research and education only. Fund names, performance, and dates on
+          this screen are synthetic prototype examples.
+        </p>
       </section>
     </main>
   );
